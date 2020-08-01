@@ -1,0 +1,61 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+group 'gjum.minecraft.civ'
+archivesBaseName = 'SynapseServer'
+version 'SNAPSHOT'
+sourceCompatibility = 1.8
+mainClassName = 'gjum.minecraft.civ.synapse.server.Server'
+
+repositories {
+	mavenCentral()
+	jcenter()
+}
+
+project.evaluationDependsOn(':common')
+
+dependencies {
+	implementation project(':common')
+	implementation 'com.google.code.findbugs:jsr305:3.0.2' // for @Nonnull and @Nullable
+	implementation 'com.google.code.gson:gson:2.8.6'
+	implementation "com.squareup.okhttp3:okhttp:4.2.1"
+	implementation 'io.netty:netty-all:4.1.33.Final'
+	implementation "org.slf4j:slf4j-simple:1.7.29"
+}
+
+jar {
+	from(project(':common').sourceSets.main.output) {
+		include '**'
+	}
+	manifest {
+		attributes('Main-Class': project.mainClassName)
+	}
+}
+
+def getGitRef = { ->
+	new ByteArrayOutputStream().withStream { stdout ->
+		exec {
+			commandLine 'git', 'rev-parse', '--verify', 'HEAD'
+			standardOutput = stdout
+		}
+		return stdout.toString().trim()
+	}
+}
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task generateSources(type: Copy) {
+	from 'src/main/java'
+	into "$buildDir/generated-src"
+	filter(ReplaceTokens, tokens: [
+			'GIT_REF': getGitRef(),
+	])
+}
+compileJava.setSource "$buildDir/generated-src"
+compileJava.dependsOn generateSources

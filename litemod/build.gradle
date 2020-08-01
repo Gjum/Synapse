@@ -1,0 +1,104 @@
+import java.text.SimpleDateFormat
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		maven {
+			name = "sonatype"
+			url = "https://oss.sonatype.org/content/repositories/snapshots/"
+		}
+		maven {
+			name = "forge"
+			url = "http://files.minecraftforge.net/maven"
+		}
+		maven {
+			name = 'sponge'
+			url = 'http://repo.spongepowered.org/maven'
+		}
+	}
+	dependencies {
+		classpath 'net.minecraftforge.gradle:ForgeGradle:' + project.forgeGradleVersion
+		classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
+	}
+}
+
+apply plugin: 'net.minecraftforge.gradle.liteloader'
+apply plugin: 'org.spongepowered.mixin'
+
+def getTimestampStr = { ->
+	SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+	df.setTimeZone(TimeZone.getTimeZone("UTC"))
+	return df.format(new Date())
+}
+
+def getShortGitRef = { ->
+	new ByteArrayOutputStream().withStream { stdout ->
+		exec {
+			commandLine 'git', 'rev-parse', '--short', '--verify', 'HEAD'
+			standardOutput = stdout
+		}
+		return stdout.toString().trim()
+	}
+}
+
+group = project.projectGroup
+archivesBaseName = 'Synapse'
+
+project.version = project.version
+
+project.evaluationDependsOn(':common')
+
+dependencies {
+	implementation project(':common')
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.5.2'
+}
+
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "passed", "skipped", "failed"
+	}
+}
+
+minecraft {
+	// defined in the gradle.properties
+	version = project.mcVersion
+	mappings = project.mcMappings
+	runDir = "run"
+
+	replaceIn "gjum/minecraft/civ/synapse/LiteModSynapse.java"
+	replace "Development_Build", project.version + "-" + getTimestampStr() + "+" + getShortGitRef()
+}
+
+sourceSets {
+	main {
+		ext.refMap = "mixins.refmap.json"
+	}
+}
+
+mixin {
+	// tell mixins to use notch names at runtime
+	defaultObfuscationEnv notch
+}
+
+litemod {
+	json {
+		name = 'Synapse'
+		displayName = 'Synapse'
+		author = "Gjum"
+		description = project.description
+		version = project.version + "-" + getTimestampStr() + "+" + getShortGitRef()
+		mcversion = project.mcVersion
+		mixinConfigs += "mixins.json"
+	}
+}
+
+jar {
+	from(project(':common').sourceSets.main.output) {
+		include '**'
+	}
+	// litemod task generates litemod.json dynamically
+	from litemod.outputs
+	baseName archivesBaseName
+}

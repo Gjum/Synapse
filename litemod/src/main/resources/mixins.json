@@ -1,0 +1,14 @@
+{
+    "required": true,
+    "minVersion": "0.5.3",
+    "package": "gjum.minecraft.civ.synapse.mixin",
+    "refmap": "mixins.refmap.json",
+    "mixins": [
+        "MixinEntityPlayer",
+        "MixinNetHandlerPlayClient",
+        "MixinGuiPlayerTabOverlay"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

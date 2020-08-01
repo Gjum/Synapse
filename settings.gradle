@@ -1,0 +1,2 @@
+rootProject.name = 'Synapse'
+include 'common', 'litemod', 'server'

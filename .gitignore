@@ -1,0 +1,5 @@
+*.class
+build/
+.gradle/
+run/
+build.number
