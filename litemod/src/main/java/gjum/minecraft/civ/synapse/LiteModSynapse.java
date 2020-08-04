@@ -225,6 +225,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 				player.setGlowing(false);
 			}
 		}
+		if (waypointManager != null) waypointManager.updateAllWaypoints();
 		comms.disconnect();
 	}
 

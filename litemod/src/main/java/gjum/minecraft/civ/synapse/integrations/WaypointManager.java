@@ -143,6 +143,18 @@ public class WaypointManager implements PersonChangeHandler {
 		}
 	}
 
+	/**
+	 * e.g. when mod is disabled
+	 */
+	public void deleteAllWaypoints() {
+		for (MultiWaypoint point : managedAccountWaypoints.values()) {
+			point.deleteMapWaypoints();
+		}
+		for (MultiWaypoint point : managedPearlWaypoints.values()) {
+			point.deleteMapWaypoints();
+		}
+	}
+
 	@Override
 	public void handlePersonChange(@Nullable Person personOld, @Nullable Person personNew) {
 		if (personOld != null) {

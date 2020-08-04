@@ -139,10 +139,12 @@ class MultiWaypoint {
 		final EntityPlayer player = getMc().world.getPlayerEntityByName(account);
 		hiddenForNearby = player != null;
 
+		final boolean modActive = LiteModSynapse.instance.isModActive();
+
 		final GlobalConfig globalConfig = LiteModSynapse.instance.config;
 		try {
 			if (isJourneyMapLoaded()) {
-				if (globalConfig.isUseJourneyMap()) {
+				if (modActive && globalConfig.isUseJourneyMap()) {
 					JourneyMapHelper.updateWaypoint(this);
 				} else {
 					JourneyMapHelper.deleteWaypoint(this);
@@ -154,7 +156,7 @@ class MultiWaypoint {
 
 		try {
 			if (isVoxelMapActive()) {
-				if (globalConfig.isUseVoxelMap()) {
+				if (modActive && globalConfig.isUseVoxelMap()) {
 					VoxelMapHelper.updateWaypoint(this);
 				} else {
 					VoxelMapHelper.deleteWaypoint(this);
