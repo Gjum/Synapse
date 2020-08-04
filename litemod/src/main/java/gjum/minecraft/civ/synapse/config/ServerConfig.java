@@ -19,7 +19,7 @@ public class ServerConfig extends JsonConfig {
 	@Expose
 	private boolean enabled = true;
 
-	private static final String defaultCommsAddress = "civsynapse.duckdns.org:22001";
+	private static final String defaultCommsAddress = "invalid";
 	@Expose
 	private String commsAddress = defaultCommsAddress;
 

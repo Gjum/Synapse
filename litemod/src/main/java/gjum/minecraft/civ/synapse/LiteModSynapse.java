@@ -94,7 +94,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 	private long lastSync = 0;
 
 	@Nonnull
-	private Client comms = new Client("civsynapse.duckdns.org:22001");
+	private Client comms = new Client("invalid");
 
 	@Nonnull
 	private Collection<String> focusedAccountNames = Collections.emptyList();
