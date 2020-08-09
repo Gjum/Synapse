@@ -1,0 +1,9 @@
+{
+  "mods": {
+    "1.12.2": {
+      "combat radar": false,
+      "journeymap-api-1.12-1.4": false,
+      "voxelmap": false
+    }
+  }
+}

@@ -19,10 +19,10 @@ Each feature can be turned on/off and all message formatting can be customized.
 
 ## Usage
 
-- Install [LiteLoader][liteloader]
+- Install [LiteLoader][liteloader] and optionally Forge (for JourneyMap). They can work together, for example versions `LiteLoader 1.12.2-SNAPSHOT` and `Forge 14.23.5.2854`
 - Download [`Synapse-*.litemod`][latest-build] and put it into `.minecraft\mods\1.12.2` folder. Start Minecraft.
 - Set up the mod's keyboard shortcuts in the Minecraft keyboard settings.
-- Configuration: either press the "Open GUI" keybind if you configured it; or: press Escape, open the "LiteLoader chicken" tab on the top right, select `Synapse` from the list, select `Settings...` on the bottom.
+- Configuration: press the "Open settings GUI" keybind that you just assigned, then press "Settings" at the top left.
 
 [liteloader]: https://www.liteloader.com/download#snapshot_11220
 [latest-build]: https://github.com/Gjum/Synapse/releases/latest
@@ -30,8 +30,8 @@ Each feature can be turned on/off and all message formatting can be customized.
 ## Features Roadmap
 - new, more flexible formatting syntax
 - skynet and tablist show combat logging
-- some other trusted player can update person standings live via group chat
-- when pearled, start broadcasting automatically or on keybind
+- some other trusted player can update person standings live via the team relay server
+- when pearled, start periodically executing the pearl location command, either automatically or on keybind
 - directional radar sound
 
 ## Config files
@@ -46,7 +46,22 @@ If you edit the config files while Minecraft is running, reload them from the se
 
 ## Development
 
-- `cd` into the `litemod` directory
-- optional: run `./gradlew setupDecompWorkspace` and edit some code
-- run `./gradlew reobfJar`
-- use `build/libs/*.litemod`
+The following assumes Linux/Mac. If you're on Windows, replace `./gradlew` with `gradlew.bat` and `/` with `\`
+
+### Debugging
+
+- Run `./gradlew litemod:genIntellijRuns` or `./gradlew litemod:eclipseProject` depending on your preference.
+    In the generated run configurations it may be necessary to set the working directory to `litemod/run` and module classpath to `Synapse.litemod.main`
+- Optional: Run `./gradlew litemod:setupDecompWorkspace` to generate deobfuscated Minecraft source code as a reference.
+- If the library mods (CombatRadar/VoxelMap/JourneyMap) fail to load (big red error messages ingame), disable them.
+    This is because the runtime uses MCP names, while the library mods expect notch names (obfuscated).
+    They should be disabled by default via the provided `litemod/run/liteconfig/liteloader.profiles.json`,
+    but this may be ignored by your setup if you are using a different `run` directory.
+- Hot reloading should work by default, just press "Build" in your IDE.
+    Remember that this only allows modifying method bodies, but not adding/removing classes/methods/fields or changing their order/signature.
+
+### Releasing a new version
+
+- Update `version` in `litemod/gradle.properties`
+- Run `./gradlew litemod:reobfJar`
+- The resulting mod is located in `litemod/build/libs/`
