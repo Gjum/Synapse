@@ -136,6 +136,16 @@ public class SettingsGui extends GuiRoot {
 						return valid;
 					}, serverConfig.getCommsAddress()))));
 			scroll.add(new Spacer(spacer));
+
+			scroll.add(new Tooltip("Proxy for connecting to communications server.", new FlexListLayout(ROW)
+					.add(new Label("Proxy (SOCKS5):", ALIGN_LEFT))
+					.add(new TextField(text -> {
+						text = text.trim();
+						final boolean valid = text.matches("([^:/]+:[0-9]+)?");
+						if (valid) serverConfig.setProxyAddress(text);
+						return valid;
+					}, serverConfig.getProxyAddress()))));
+			scroll.add(new Spacer(spacer));
 		}
 
 		scroll.add(new Button(() -> {

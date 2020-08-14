@@ -94,7 +94,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 	private long lastSync = 0;
 
 	@Nonnull
-	private Client comms = new Client("invalid");
+	private Client comms = new Client("", "");
 
 	@Nonnull
 	private Collection<String> focusedAccountNames = Collections.emptyList();
@@ -153,7 +153,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 			new PersonsConfig().saveLater(new File(civRealmsConfigDir, "persons.json"));
 		}
 
-		comms.connect();
+		//comms.connect();
 	}
 
 	@Override
@@ -210,10 +210,13 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 
 	public void checkCommsAddress() {
 		if (serverConfig != null) {
-			if (comms != null && !serverConfig.getCommsAddress().equals(comms.address)) {
+			if (comms != null && (!serverConfig.getCommsAddress().equals(comms.address)
+					|| !serverConfig.getProxyAddress().equals(comms.proxy_address))) {
 				comms.disconnect();
+				comms.address = serverConfig.getCommsAddress();
+				comms.proxy_address = serverConfig.getProxyAddress();
 			}
-			if (comms == null) comms = new Client(serverConfig.getCommsAddress());
+			if (comms == null) comms = new Client(serverConfig.getCommsAddress(), serverConfig.getProxyAddress());
 			if (!comms.isEncrypted()) comms.connect();
 		}
 	}
