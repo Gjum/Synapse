@@ -62,6 +62,8 @@ public class ServerConfig extends JsonConfig {
 		final ServerConfig other = ((ServerConfig) data);
 
 		enabled = other.enabled;
+		commsAddress = other.commsAddress;
+		proxyAddress = other.proxyAddress;
 		final HashMap<String, Standing> oldFactionStandings = factionStandings;
 		factionStandings = other.factionStandings;
 

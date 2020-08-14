@@ -94,7 +94,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 	private long lastSync = 0;
 
 	@Nonnull
-	private Client comms = new Client("", "");
+	private Client comms = new Client("none?", "none?");
 
 	@Nonnull
 	private Collection<String> focusedAccountNames = Collections.emptyList();
