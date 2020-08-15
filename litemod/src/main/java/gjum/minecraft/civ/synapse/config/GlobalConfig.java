@@ -53,13 +53,13 @@ public class GlobalConfig extends JsonConfig {
 	private boolean playRadarSound = true;
 
 	@Expose
-	private boolean playerMiddleHoop = true;
+	private boolean playerMiddleHoop = false;
 
 	@Expose
 	private boolean playerOuterHoops = false;
 
 	@Expose
-	private boolean playerBox = false;
+	private boolean playerBox = true;
 
 	@Expose
 	private boolean playerGlow = false;
@@ -563,7 +563,7 @@ public class GlobalConfig extends JsonConfig {
 	}
 
 	public boolean isPlayerGlow() {
-		return playerGlow;
+		return false;
 	}
 
 	public void setPlayerGlow(boolean playerGlow) {

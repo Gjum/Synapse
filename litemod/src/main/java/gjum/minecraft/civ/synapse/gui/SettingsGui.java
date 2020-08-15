@@ -240,10 +240,10 @@ public class SettingsGui extends GuiRoot {
 		final FlexListLayout row = new FlexListLayout(ROW);
 		row.add(new Label("Player decorations:", ALIGN_LEFT));
 		row.add(new Spacer(spacer));
-		row.add(configToggle("Glow",
-				mod.config::setPlayerGlow,
-				mod.config::isPlayerGlow));
-		row.add(new Spacer(spacer));
+//		row.add(configToggle("Glow",
+//				mod.config::setPlayerGlow,
+//				mod.config::isPlayerGlow));
+//		row.add(new Spacer(spacer));
 		row.add(configToggle("Middle hoop",
 				mod.config::setPlayerMiddleHoop,
 				mod.config::isPlayerMiddleHoop));

@@ -463,10 +463,10 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 
 		GlStateManager.enableDepth();
 		GlStateManager.depthMask(true);
-//		if (!entity.isSneaking()) {
-//			GlStateManager.depthMask(false);
-//			GlStateManager.disableDepth();
-//		}
+		if (!entity.isSneaking()) {
+			GlStateManager.depthMask(false);
+			GlStateManager.disableDepth();
+		}
 	}
 
 	private void resetRenderPlayerDecorations() {
