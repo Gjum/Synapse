@@ -91,6 +91,7 @@ public class GlobalConfig extends JsonConfig {
 		FOCUSED("Focused only"),
 		HOSTILE("Hostile only"),
 		HOSTILE_FRIENDLY("Hostile+Friendly"),
+		NOT_FRIENDLY ("Not Friendly"),
 		EVERYONE("All players");
 
 		private final String buttonText;
@@ -250,6 +251,8 @@ public class GlobalConfig extends JsonConfig {
 				return standing == Standing.HOSTILE || standing == Standing.FOCUS;
 			case HOSTILE_FRIENDLY:
 				return standing == Standing.FRIENDLY || standing == Standing.HOSTILE || standing == Standing.FOCUS;
+			case NOT_FRIENDLY:
+				return standing != Standing.FRIENDLY;
 			default:
 			case EVERYONE:
 				return true;
