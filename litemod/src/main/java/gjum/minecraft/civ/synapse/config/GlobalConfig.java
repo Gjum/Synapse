@@ -175,17 +175,12 @@ public class GlobalConfig extends JsonConfig {
 	@Expose
 	private Visibility visibilityFarUnsetStanding = Visibility.DULL;
 
-	private boolean initializing = false;
-
 	public GlobalConfig() {
-		initialize();
+		//initialize();
 	}
 
-	private void initialize() {
-		if (initializing) return;
-		initializing = true;
-
-		// even though getStandingColor() is marked at Nonnull, they can be null here at initialization
+	protected void fillDefaults() {
+		//
 		if (getStandingColor(Standing.FOCUS) == null)
 			setStandingColor(Standing.FOCUS, TextFormatting.YELLOW);
 		if (getStandingColor(Standing.FRIENDLY) == null)
@@ -207,8 +202,6 @@ public class GlobalConfig extends JsonConfig {
 			setStandingSound(Standing.UNSET, getStandingSound(Standing.NEUTRAL));
 		if (getStandingSound(Standing.FOCUS) == null)
 			setStandingSound(Standing.FOCUS, getStandingSound(Standing.HOSTILE));
-
-		initializing = false;
 	}
 
 	@Override
@@ -221,6 +214,7 @@ public class GlobalConfig extends JsonConfig {
 		final GlobalConfig newConf = (GlobalConfig) data;
 		newConf.saveLater(saveLocation);
 		LiteModSynapse.instance.config = newConf;
+		newConf.fillDefaults();
 	}
 
 	@Nonnull
@@ -501,9 +495,7 @@ public class GlobalConfig extends JsonConfig {
 		saveLater(null);
 	}
 
-	@Nonnull
 	public TextFormatting getStandingColor(@Nullable Standing standing) {
-		initialize();
 		if (standing == null) standing = Standing.UNSET;
 		return standingColors.get(standing);
 	}
@@ -518,7 +510,6 @@ public class GlobalConfig extends JsonConfig {
 
 	@Nullable
 	public String getStandingSound(Standing standing) {
-		initialize();
 		if (standing == null) standing = Standing.UNSET;
 		return standingSounds.get(standing);
 	}
