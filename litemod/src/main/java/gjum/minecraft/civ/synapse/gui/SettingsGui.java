@@ -127,24 +127,35 @@ public class SettingsGui extends GuiRoot {
 		final ServerConfig serverConfig = mod.serverConfig;
 		final PersonsConfig personsConfig = mod.personsConfig;
 		if (serverConfig != null) {
-			scroll.add(new Tooltip("Address of your team's communications server", new FlexListLayout(ROW)
-					.add(new Label("Comms address:", ALIGN_LEFT))
+			scroll.add(new Tooltip("Synchronization server settings, patent pending.", new FlexListLayout(ROW)
+					.add(new Label("Comms address: ", ALIGN_LEFT))
 					.add(new TextField(text -> {
 						text = text.trim();
 						final boolean valid = text.matches("([^:/]+:[0-9]+)?");
 						if (valid) serverConfig.setCommsAddress(text);
 						return valid;
-					}, serverConfig.getCommsAddress()))));
-			scroll.add(new Spacer(spacer));
-
-			scroll.add(new Tooltip("Proxy for connecting to communications server.", new FlexListLayout(ROW)
-					.add(new Label("Proxy (SOCKS5):", ALIGN_LEFT))
+					}, serverConfig.getCommsAddress()))
+					.add(new Spacer(spacer))
+					.add(new Label("Proxy (SOCKSv5): ", ALIGN_LEFT))
 					.add(new TextField(text -> {
 						text = text.trim();
 						final boolean valid = text.matches("([^:/]+:[0-9]+)?");
 						if (valid) serverConfig.setProxyAddress(text);
 						return valid;
-					}, serverConfig.getProxyAddress()))));
+					}, serverConfig.getProxyAddress()))
+					.add(new Spacer(spacer))
+					.add(new Label("Sync interval: ", ALIGN_LEFT))
+					.add(new TextField(text -> {
+						try {
+							mod.config.setSyncInterval((long) (1000f * parseFloat(text)));
+							return true;
+						} catch (NumberFormatException e) {
+							return false;
+						}
+					}, wpAgeFloatFmt.format(mod.config.getSyncInterval() / 1000f))
+							.setFixedSize(new Vec2(60, 20)))
+					.add(new Label("seconds", ALIGN_LEFT))
+			));
 			scroll.add(new Spacer(spacer));
 		}
 
