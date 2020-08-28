@@ -28,7 +28,6 @@ import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
@@ -59,7 +58,7 @@ import static gjum.minecraft.civ.synapse.ObservationFormatter.addCoordClickEvent
 import static gjum.minecraft.civ.synapse.ObservationFormatter.formatObservationStatic;
 import static gjum.minecraft.civ.synapse.common.Util.*;
 
-public class LiteModSynapse implements Tickable, Configurable, EntityRenderListener, HUDRenderListener, JoinGameListener, PacketHandler {
+public class LiteModSynapse implements Tickable, Configurable, PostRenderListener, HUDRenderListener, JoinGameListener, PacketHandler {
 	public static final String MOD_NAME = "Synapse";
 
 	public static KeyBinding chatPosKeybind = new KeyBinding("Pre-fill position into chat", Keyboard.KEY_NONE, MOD_NAME);
@@ -387,26 +386,21 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 	}
 
 	@Override
-	public void onRenderEntity(
-			Render<? extends Entity> render, Entity entity,
-			double xPos, double yPos, double zPos, float yaw, float partialTicks) {
-		try {
-			if (!isModActive()) return;
-			if (entity instanceof EntityPlayer) {
-				entity.setGlowing(config.isPlayerGlow() && !entity.isInvisible() && !entity.isSneaking());
-			}
-		} catch (Throwable e) {
-			printErrorRateLimited(e);
-		}
+	public void onPostRenderEntities(float partialTicks) {
 	}
 
 	@Override
-	public void onPostRenderEntity(
-			Render<? extends Entity> render, Entity entity,
-			double xPos, double yPos, double zPos, float yaw, float partialTicks) {
+	public void onPostRender(float partialTicks) {
+		for (EntityPlayer player : getMc().world.playerEntities) {
+			renderDecorators(player, partialTicks);
+		}
+	}
+
+	public void renderDecorators(
+			EntityPlayer entity, float partialTicks) {
 		try {
 			if (!isModActive()) return;
-			if (entity instanceof EntityPlayer && !entity.isInvisible() && shouldRenderPlayerDecoration(entity)) {
+			if (legalToRenderDecorations(entity) && shouldRenderPlayerDecoration(entity)) {
 				try {
 					prepareRenderPlayerDecorations(entity, partialTicks);
 					ScorePlayerTeam team = null;
@@ -452,6 +446,10 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 		}
 	}
 
+	private boolean legalToRenderDecorations(EntityPlayer player) {
+		return !player.isInvisible() && !player.isSneaking();
+	}
+
 	private void prepareRenderPlayerDecorations(@Nonnull Entity entity, float partialTicks) {
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		GlStateManager.disableTexture2D();
@@ -461,12 +459,8 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 		GL11.glEnable(GL11.GL_LINE_SMOOTH);
 		GlStateManager.glLineWidth(config.getPlayerLineWidth());
 
-		GlStateManager.enableDepth();
-		GlStateManager.depthMask(true);
-		if (!entity.isSneaking()) {
-			GlStateManager.depthMask(false);
-			GlStateManager.disableDepth();
-		}
+		GlStateManager.disableDepth();
+		GlStateManager.depthMask(false);
 	}
 
 	private void resetRenderPlayerDecorations() {
