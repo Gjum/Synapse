@@ -377,11 +377,11 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 					player.getName(), getEntityPosition(player), worldName)
 			), flushEveryPacket);
 		}
-		final PlayerStateExtra selfState = new PlayerStateExtra(getSelfAccount(),
+		final PlayerState selfState = new PlayerState(getSelfAccount(),
 				getSelfAccount(), getEntityPosition(getMc().player), worldName);
-		selfState.heading = headingFromYawDegrees(getMc().player.rotationYawHead);
-		selfState.health = getHealth();
-		selfState.hpotCount = getNumHealthPots();
+		//selfState.heading = headingFromYawDegrees(getMc().player.rotationYawHead);
+		//selfState.health = getHealth();
+		//selfState.hpotCount = getNumHealthPots();
 		// TODO send combat tag end, min armor dura
 		comms.sendEncrypted(new JsonPacket(selfState), true);
 	}

@@ -75,17 +75,17 @@ public class Server {
 		statsInterval = 1000 * Integer.parseInt(nonNullOr(System.getenv("STATS_INTERVAL"), "300"));
 
 		String uuidMapperPath = nonNullOr(System.getenv("UUID_MAPPER_PATH"), "uuids.tsv");
-		new File(uuidMapperPath).getParentFile().mkdirs();
+		new File(uuidMapperPath).getAbsoluteFile().getParentFile().mkdirs();
 		uuidMapper.load(new File(uuidMapperPath)); // must be loaded first; others depend on it during loading
 		uuidMapper.saveLater(null);
 
 		String userListPath = nonNullOr(System.getenv("USER_LIST_PATH"), "users.tsv");
-		new File(userListPath).getParentFile().mkdirs();
+		new File(userListPath).getAbsoluteFile().getParentFile().mkdirs();
 		userList.load(new File(userListPath));
 		userList.saveLater(null);
 
 		String adminListPath = nonNullOr(System.getenv("ADMIN_LIST_PATH"), "admins.tsv");
-		new File(adminListPath).getParentFile().mkdirs();
+		new File(adminListPath).getAbsoluteFile().getParentFile().mkdirs();
 		adminList.load(new File(adminListPath));
 		adminList.saveLater(null);
 
@@ -254,10 +254,6 @@ public class Server {
 	}
 
 	synchronized public String handleClientHandshaking(ClientSession client, CHandshake handshake) {
-		if (!userList.contains(client.getMojangUuid())) {
-			kick(client, "Not whitelisted: " + client.getMojangUuid() + " as " + handshake.username + " (?)");
-		}
-
 		client.gameAddress = handshake.gameAddress;
 		if (!isAllowedGameServer(client)) {
 			kick(client, "Invalid game server: " + handshake.gameAddress);
@@ -266,7 +262,7 @@ public class Server {
 		client.whitelisted = true;
 		log(client, Level.INFO, "Handshaking: " + handshake);
 
-		String statusMessage = null;
+		String statusMessage = "Daily reminder: CANTINA SUCKS COCK.";
 		@Nullable final String versionPart = client.synapseVersion == null ? null
 				: client.synapseVersion.split("\\+-", 2)[0]; // allow any build info
 		if (versionPart == null || (!versionPart.startsWith(allowedModVersionPart)
@@ -287,9 +283,15 @@ public class Server {
 			}
 		}
 
-		log(client, Level.INFO, "Authenticated as " + client.getMojangAccount()
-				+ " " + client.getMojangUuid()
+		UUID mojUuid = client.getMojangUuid();
+		String mojAccount = client.getMojangAccount();
+		log(client, Level.INFO, "Authenticated as " + mojAccount
+				+ " " + mojUuid
 				+ " CivRealms name: " + client.getCivRealmsAccount());
+
+		if (!userList.contains(client.getMojangUuid())) {
+			kick(client, "Not whitelisted: " + mojUuid + " as " + mojAccount + " (?)");
+		}
 	}
 
 	synchronized private void handleClientDisconnected(ClientSession client) {
