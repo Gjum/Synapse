@@ -726,9 +726,7 @@ public class LiteModSynapse implements Tickable, Configurable, PostRenderListene
 		final Standing standing = getStanding(accObs.getAccount());
 		final boolean isOurs = observation.getWitness().equals(getSelfAccount());
 		if (!isOurs) {
-		    if (observation instanceof RadarChange) {
-		        return Visibility.HIDE;
-            }
+		    return Visibility.HIDE;
         }
 		if (!config.matchesStandingFilter(standing, config.getStandingFilter(observation))) {
 			return Visibility.HIDE;
