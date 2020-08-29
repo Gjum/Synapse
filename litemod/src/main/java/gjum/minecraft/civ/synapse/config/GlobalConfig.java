@@ -68,7 +68,7 @@ public class GlobalConfig extends JsonConfig {
 	private float playerLineWidth = 2;
 
 	@Expose
-	private long syncInterval = 1000;
+	private long syncInterval = 6500;
 
 	public enum VisibilityFormat {
 		FORMATTED("Formatted"),
@@ -184,11 +184,11 @@ public class GlobalConfig extends JsonConfig {
 		if (getStandingColor(Standing.FOCUS) == null)
 			setStandingColor(Standing.FOCUS, TextFormatting.YELLOW);
 		if (getStandingColor(Standing.FRIENDLY) == null)
-			setStandingColor(Standing.FRIENDLY, TextFormatting.AQUA);
+			setStandingColor(Standing.FRIENDLY, TextFormatting.GREEN);
 		if (getStandingColor(Standing.HOSTILE) == null)
 			setStandingColor(Standing.HOSTILE, TextFormatting.RED);
 		if (getStandingColor(Standing.NEUTRAL) == null)
-			setStandingColor(Standing.NEUTRAL, TextFormatting.DARK_GREEN);
+			setStandingColor(Standing.NEUTRAL, TextFormatting.DARK_PURPLE);
 		if (getStandingColor(Standing.UNSET) == null)
 			setStandingColor(Standing.UNSET, TextFormatting.WHITE);
 
