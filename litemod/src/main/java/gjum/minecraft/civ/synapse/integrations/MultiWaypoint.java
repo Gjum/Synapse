@@ -64,7 +64,7 @@ class MultiWaypoint {
 
 	public String getName() {
 		final String accountAndPersonNames = LiteModSynapse.instance.getDisplayNameForAccount(account).getUnformattedText();
-		return prefix + accountAndPersonNames + suffix;
+		return prefix + accountAndPersonNames + " y:" + pos.y + suffix;
 	}
 
 	public int getDimension() {
