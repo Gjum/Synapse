@@ -88,9 +88,20 @@ public class McUtil {
 				+ inv.offHandInventory.stream().filter(McUtil::isHealthPot).count());
 	}
 
+	public static int getNumSpeedPots() {
+		// TODO cache health pot count instead of recomputing each frame; invalidate cache when inventory packet received
+		final InventoryPlayer inv = getMc().player.inventory;
+		return (int) (inv.mainInventory.stream().filter(McUtil::isSpeedPot).count()
+				+ inv.offHandInventory.stream().filter(McUtil::isSpeedPot).count());
+	}
 	public static boolean isHealthPot(ItemStack stack) {
 		return stack.getItem() == Items.SPLASH_POTION
 				&& getPotionFromItem(stack) == PotionTypes.STRONG_HEALING;
+	}
+
+	public static boolean isSpeedPot(ItemStack stack) {
+		return stack.getItem() == Items.SPLASH_POTION
+				&& getPotionFromItem(stack) == PotionTypes.STRONG_SWIFTNESS;
 	}
 
 	public static int blockIdAtPos(@Nonnull BlockPos pos) {

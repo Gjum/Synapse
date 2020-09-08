@@ -410,11 +410,9 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 					FloatColor color = null;
 					boolean computedTeam = false;
 					if (config.isPlayerMiddleHoop()) {
-						if (!computedTeam) {
-							team = config.getStandingTeam(getStanding(entity.getName()));
-							if (team != null) color = FloatColor.fromTextFormatting(team.getColor());
-							computedTeam = true;
-						}
+						team = config.getStandingTeam(getStanding(entity.getName()));
+						if (team != null) color = FloatColor.fromTextFormatting(team.getColor());
+						computedTeam = true;
 						if (team != null) {
 							renderHoop(entity, 0.5, 1, partialTicks, color);
 						}
@@ -434,7 +432,6 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 						if (!computedTeam) {
 							team = config.getStandingTeam(getStanding(entity.getName()));
 							if (team != null) color = FloatColor.fromTextFormatting(team.getColor());
-							computedTeam = true;
 						}
 						if (team != null) {
 							renderBox(entity, partialTicks, color);
@@ -460,10 +457,10 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 
 		GlStateManager.enableDepth();
 		GlStateManager.depthMask(true);
-//		if (!entity.isSneaking()) {
-//			GlStateManager.depthMask(false);
-//			GlStateManager.disableDepth();
-//		}
+		if (!entity.isSneaking()) {
+			GlStateManager.depthMask(false);
+			GlStateManager.disableDepth();
+		}
 	}
 
 	private void resetRenderPlayerDecorations() {
@@ -549,14 +546,15 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 
 			int y = (screenHeight - 10 * 8) / 2;
 			if (config.isShowHudHealthPotCount()) {
-				renderHealthPotCountHud(y += 10);
+				renderPotCountHud(y += 10);
 				y += 10;
 			}
 			if (config.isShowHudRadarPlayerCount()) {
+				y+= 10;
 				// TODO hide each nearby player count if zero?
-				renderPlayerCountHud(y += 10, "hostile", Standing.HOSTILE);
-				renderPlayerCountHud(y += 10, "friendly", Standing.FRIENDLY);
-				renderPlayerCountHud(y += 10, "total", null);
+				renderPlayerCountHud(y += 10, "Ape", Standing.HOSTILE);
+				renderPlayerCountHud(y += 10, "Homie", Standing.FRIENDLY);
+				renderPlayerCountHud(y += 10, "Head", null);
 				y += 10;
 			}
 			final int wrapWidth = 200;
@@ -602,7 +600,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 		if (standing == Standing.HOSTILE) {
 			numPlayers += getNumVisiblePlayersWithStanding(Standing.FOCUS);
 		}
-		final String str = numPlayers + " " + text + " near";
+		final String str = numPlayers + " " + (numPlayers > 1 || numPlayers == 0? text + "s" : text) + " near";
 		final int color = numPlayers == 0
 				? Color.GRAY.getRGB()
 				: getStandingColor(standing).getRGB();
@@ -621,11 +619,21 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 		return count;
 	}
 
-	private void renderHealthPotCountHud(int y) {
+	private void renderPotCountHud(int y) {
 		final long numHealthPots = getNumHealthPots();
-		final String str = numHealthPots + " hpots";
-		getMc().fontRenderer.drawStringWithShadow(str, 1, y, Color.MAGENTA.getRGB());
+		final long numSpeedPots = getNumSpeedPots();
+		final String strH = numHealthPots + " health";
+		final String strS = numSpeedPots + " speed";
+		if (numHealthPots <= 5) {
+			getMc().fontRenderer.drawStringWithShadow(strH, 1, y, Color.RED.getRGB());
+		}
+		else {
+			getMc().fontRenderer.drawStringWithShadow(strH, 1, y, Color.MAGENTA.getRGB());
+		}
+		getMc().fontRenderer.drawStringWithShadow(strS, 1, y + 10, Color.ORANGE.getRGB());
 	}
+
+
 
 	@Nullable
 	public PersonsRegistry getPersonsRegistry() {
