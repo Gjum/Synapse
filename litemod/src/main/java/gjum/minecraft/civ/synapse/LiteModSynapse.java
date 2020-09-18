@@ -368,6 +368,7 @@ public class LiteModSynapse implements Tickable, Configurable, PostRenderListene
 	private void syncComms() {
 		if (!comms.isEncrypted()) return;
 		if (getMc().world == null) return;
+		/*
 		boolean flushEveryPacket = false;
 		for (EntityPlayer player : getMc().world.playerEntities) {
 			if (player == getMc().player) continue; // send more info for self at the end
@@ -375,7 +376,7 @@ public class LiteModSynapse implements Tickable, Configurable, PostRenderListene
 			comms.sendEncrypted(new JsonPacket(new PlayerState(getSelfAccount(),
 					player.getName(), getEntityPosition(player), worldName)
 			), flushEveryPacket);
-		}
+		}*/
 		final PlayerState selfState = new PlayerState(getSelfAccount(),
 				getSelfAccount(), getEntityPosition(getMc().player), worldName);
 		//selfState.heading = headingFromYawDegrees(getMc().player.rotationYawHead);
@@ -788,6 +789,20 @@ public class LiteModSynapse implements Tickable, Configurable, PostRenderListene
 
 		if (!isNew) return;
 
+        // ignore skynet spam at login
+        final boolean skynetIgnored = obs instanceof Skynet && loginTime + 1000 > System.currentTimeMillis();
+        if (!skynetIgnored) {
+            try {
+                final ITextComponent formattedMsg = formatObservationWithVisibility(null, obs, originalChat);
+                if (formattedMsg != null) {
+                    getMc().ingameGUI.getChatGUI().printChatMessage(formattedMsg);
+                }
+            } catch (Throwable e) {
+                printErrorRateLimited(e);
+                if (originalChat != null) getMc().ingameGUI.getChatGUI().printChatMessage(originalChat);
+            }
+        }
+
 		if (obs instanceof AccountPosObservation) {
 			final AccountPosObservation apObs = (AccountPosObservation) obs;
 			if (waypointManager != null) {
@@ -797,26 +812,13 @@ public class LiteModSynapse implements Tickable, Configurable, PostRenderListene
 					printErrorRateLimited(e);
 				}
 			}
+			return;
 		}
 		if (obs instanceof PearlLocation && waypointManager != null) {
 			try {
 				waypointManager.updatePearlLocation((PearlLocation) obs);
 			} catch (Throwable e) {
 				printErrorRateLimited(e);
-			}
-		}
-
-		// ignore skynet spam at login
-		final boolean skynetIgnored = obs instanceof Skynet && loginTime + 1000 > System.currentTimeMillis();
-		if (!skynetIgnored) {
-			try {
-				final ITextComponent formattedMsg = formatObservationWithVisibility(null, obs, originalChat);
-				if (formattedMsg != null) {
-					getMc().ingameGUI.getChatGUI().printChatMessage(formattedMsg);
-				}
-			} catch (Throwable e) {
-				printErrorRateLimited(e);
-				if (originalChat != null) getMc().ingameGUI.getChatGUI().printChatMessage(originalChat);
 			}
 		}
 
