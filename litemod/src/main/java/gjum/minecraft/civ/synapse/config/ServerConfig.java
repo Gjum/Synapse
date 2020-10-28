@@ -19,9 +19,13 @@ public class ServerConfig extends JsonConfig {
 	@Expose
 	private boolean enabled = true;
 
-	private static final String defaultCommsAddress = "civsynapse.duckdns.org:22001";
+	private static final String defaultCommsAddress = "none!";
+	private static final String defaultProxyAddress = "none!";
 	@Expose
 	private String commsAddress = defaultCommsAddress;
+	@Expose
+	@Nonnull
+	private String proxyAddress = defaultProxyAddress;
 
 	/**
 	 * Decides which factions are important and which ones are secondary/ignored etc.
@@ -58,6 +62,8 @@ public class ServerConfig extends JsonConfig {
 		final ServerConfig other = ((ServerConfig) data);
 
 		enabled = other.enabled;
+		commsAddress = other.commsAddress;
+		proxyAddress = other.proxyAddress;
 		final HashMap<String, Standing> oldFactionStandings = factionStandings;
 		factionStandings = other.factionStandings;
 
@@ -87,6 +93,17 @@ public class ServerConfig extends JsonConfig {
 		this.enabled = enabled;
 		saveLater(null);
 		LiteModSynapse.instance.checkModActive();
+	}
+
+	@Nonnull
+	public String getProxyAddress() {
+		return !proxyAddress.isEmpty() ? proxyAddress : defaultProxyAddress;
+	}
+
+	public void setProxyAddress(@Nonnull String proxyAddress) {
+		this.proxyAddress = proxyAddress;
+		LiteModSynapse.instance.checkCommsAddress();
+		saveLater(null);
 	}
 
 	public String getCommsAddress() {

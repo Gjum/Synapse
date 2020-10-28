@@ -28,7 +28,6 @@ import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
@@ -59,7 +58,7 @@ import static gjum.minecraft.civ.synapse.ObservationFormatter.addCoordClickEvent
 import static gjum.minecraft.civ.synapse.ObservationFormatter.formatObservationStatic;
 import static gjum.minecraft.civ.synapse.common.Util.*;
 
-public class LiteModSynapse implements Tickable, Configurable, EntityRenderListener, HUDRenderListener, JoinGameListener, PacketHandler {
+public class LiteModSynapse implements Tickable, Configurable, PostRenderListener, HUDRenderListener, JoinGameListener, PacketHandler {
 	public static final String MOD_NAME = "Synapse";
 
 	public static KeyBinding chatPosKeybind = new KeyBinding("Pre-fill position into chat", Keyboard.KEY_NONE, MOD_NAME);
@@ -94,7 +93,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 	private long lastSync = 0;
 
 	@Nonnull
-	private Client comms = new Client("civsynapse.duckdns.org:22001");
+	private Client comms = new Client("none?", "none?");
 
 	@Nonnull
 	private Collection<String> focusedAccountNames = Collections.emptyList();
@@ -153,7 +152,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 			new PersonsConfig().saveLater(new File(civRealmsConfigDir, "persons.json"));
 		}
 
-		comms.connect();
+		//comms.connect();
 	}
 
 	@Override
@@ -210,10 +209,13 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 
 	public void checkCommsAddress() {
 		if (serverConfig != null) {
-			if (comms != null && !serverConfig.getCommsAddress().equals(comms.address)) {
+			if (comms != null && (!serverConfig.getCommsAddress().equals(comms.address)
+					|| !serverConfig.getProxyAddress().equals(comms.proxy_address))) {
 				comms.disconnect();
+				comms.address = serverConfig.getCommsAddress();
+				comms.proxy_address = serverConfig.getProxyAddress();
 			}
-			if (comms == null) comms = new Client(serverConfig.getCommsAddress());
+			if (comms == null) comms = new Client(serverConfig.getCommsAddress(), serverConfig.getProxyAddress());
 			if (!comms.isEncrypted()) comms.connect();
 		}
 	}
@@ -366,6 +368,7 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 	private void syncComms() {
 		if (!comms.isEncrypted()) return;
 		if (getMc().world == null) return;
+		/*
 		boolean flushEveryPacket = false;
 		for (EntityPlayer player : getMc().world.playerEntities) {
 			if (player == getMc().player) continue; // send more info for self at the end
@@ -373,37 +376,32 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 			comms.sendEncrypted(new JsonPacket(new PlayerState(getSelfAccount(),
 					player.getName(), getEntityPosition(player), worldName)
 			), flushEveryPacket);
-		}
-		final PlayerStateExtra selfState = new PlayerStateExtra(getSelfAccount(),
+		}*/
+		final PlayerState selfState = new PlayerState(getSelfAccount(),
 				getSelfAccount(), getEntityPosition(getMc().player), worldName);
-		selfState.heading = headingFromYawDegrees(getMc().player.rotationYawHead);
-		selfState.health = getHealth();
-		selfState.hpotCount = getNumHealthPots();
+		//selfState.heading = headingFromYawDegrees(getMc().player.rotationYawHead);
+		//selfState.health = getHealth();
+		//selfState.hpotCount = getNumHealthPots();
 		// TODO send combat tag end, min armor dura
 		comms.sendEncrypted(new JsonPacket(selfState), true);
 	}
 
 	@Override
-	public void onRenderEntity(
-			Render<? extends Entity> render, Entity entity,
-			double xPos, double yPos, double zPos, float yaw, float partialTicks) {
-		try {
-			if (!isModActive()) return;
-			if (entity instanceof EntityPlayer) {
-				entity.setGlowing(config.isPlayerGlow() && !entity.isInvisible() && !entity.isSneaking());
-			}
-		} catch (Throwable e) {
-			printErrorRateLimited(e);
-		}
+	public void onPostRenderEntities(float partialTicks) {
 	}
 
 	@Override
-	public void onPostRenderEntity(
-			Render<? extends Entity> render, Entity entity,
-			double xPos, double yPos, double zPos, float yaw, float partialTicks) {
+	public void onPostRender(float partialTicks) {
+		for (EntityPlayer player : getMc().world.playerEntities) {
+			renderDecorators(player, partialTicks);
+		}
+	}
+
+	public void renderDecorators(
+			EntityPlayer entity, float partialTicks) {
 		try {
 			if (!isModActive()) return;
-			if (entity instanceof EntityPlayer && !entity.isInvisible() && shouldRenderPlayerDecoration(entity)) {
+			if (legalToRenderDecorations(entity) && shouldRenderPlayerDecoration(entity)) {
 				try {
 					prepareRenderPlayerDecorations(entity, partialTicks);
 					ScorePlayerTeam team = null;
@@ -449,6 +447,10 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 		}
 	}
 
+	private boolean legalToRenderDecorations(EntityPlayer player) {
+		return !player.isInvisible() && !player.isSneaking();
+	}
+
 	private void prepareRenderPlayerDecorations(@Nonnull Entity entity, float partialTicks) {
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		GlStateManager.disableTexture2D();
@@ -458,12 +460,8 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 		GL11.glEnable(GL11.GL_LINE_SMOOTH);
 		GlStateManager.glLineWidth(config.getPlayerLineWidth());
 
-		GlStateManager.enableDepth();
-		GlStateManager.depthMask(true);
-//		if (!entity.isSneaking()) {
-//			GlStateManager.depthMask(false);
-//			GlStateManager.disableDepth();
-//		}
+		GlStateManager.disableDepth();
+		GlStateManager.depthMask(false);
 	}
 
 	private void resetRenderPlayerDecorations() {
@@ -727,6 +725,10 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 		if (!(observation instanceof AccountObservation)) return Visibility.SHOW;
 		final AccountObservation accObs = (AccountObservation) observation;
 		final Standing standing = getStanding(accObs.getAccount());
+		final boolean isOurs = observation.getWitness().equals(getSelfAccount());
+		if (!isOurs) {
+		    return Visibility.HIDE;
+        }
 		if (!config.matchesStandingFilter(standing, config.getStandingFilter(observation))) {
 			return Visibility.HIDE;
 		}
@@ -787,6 +789,20 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 
 		if (!isNew) return;
 
+        // ignore skynet spam at login
+        final boolean skynetIgnored = obs instanceof Skynet && loginTime + 1000 > System.currentTimeMillis();
+        if (!skynetIgnored) {
+            try {
+                final ITextComponent formattedMsg = formatObservationWithVisibility(null, obs, originalChat);
+                if (formattedMsg != null) {
+                    getMc().ingameGUI.getChatGUI().printChatMessage(formattedMsg);
+                }
+            } catch (Throwable e) {
+                printErrorRateLimited(e);
+                if (originalChat != null) getMc().ingameGUI.getChatGUI().printChatMessage(originalChat);
+            }
+        }
+
 		if (obs instanceof AccountPosObservation) {
 			final AccountPosObservation apObs = (AccountPosObservation) obs;
 			if (waypointManager != null) {
@@ -796,26 +812,13 @@ public class LiteModSynapse implements Tickable, Configurable, EntityRenderListe
 					printErrorRateLimited(e);
 				}
 			}
+			return;
 		}
 		if (obs instanceof PearlLocation && waypointManager != null) {
 			try {
 				waypointManager.updatePearlLocation((PearlLocation) obs);
 			} catch (Throwable e) {
 				printErrorRateLimited(e);
-			}
-		}
-
-		// ignore skynet spam at login
-		final boolean skynetIgnored = obs instanceof Skynet && loginTime + 1000 > System.currentTimeMillis();
-		if (!skynetIgnored) {
-			try {
-				final ITextComponent formattedMsg = formatObservationWithVisibility(null, obs, originalChat);
-				if (formattedMsg != null) {
-					getMc().ingameGUI.getChatGUI().printChatMessage(formattedMsg);
-				}
-			} catch (Throwable e) {
-				printErrorRateLimited(e);
-				if (originalChat != null) getMc().ingameGUI.getChatGUI().printChatMessage(originalChat);
 			}
 		}
 

@@ -127,14 +127,35 @@ public class SettingsGui extends GuiRoot {
 		final ServerConfig serverConfig = mod.serverConfig;
 		final PersonsConfig personsConfig = mod.personsConfig;
 		if (serverConfig != null) {
-			scroll.add(new Tooltip("Address of your team's communications server", new FlexListLayout(ROW)
-					.add(new Label("Comms address:", ALIGN_LEFT))
+			scroll.add(new Tooltip("Synchronization server settings, patent pending.", new FlexListLayout(ROW)
+					.add(new Label("Comms address: ", ALIGN_LEFT))
 					.add(new TextField(text -> {
 						text = text.trim();
 						final boolean valid = text.matches("([^:/]+:[0-9]+)?");
 						if (valid) serverConfig.setCommsAddress(text);
 						return valid;
-					}, serverConfig.getCommsAddress()))));
+					}, serverConfig.getCommsAddress()))
+					.add(new Spacer(spacer))
+					.add(new Label("Proxy (SOCKSv5): ", ALIGN_LEFT))
+					.add(new TextField(text -> {
+						text = text.trim();
+						final boolean valid = text.matches("([^:/]+:[0-9]+)?");
+						if (valid) serverConfig.setProxyAddress(text);
+						return valid;
+					}, serverConfig.getProxyAddress()))
+					.add(new Spacer(spacer))
+					.add(new Label("Sync interval: ", ALIGN_LEFT))
+					.add(new TextField(text -> {
+						try {
+							mod.config.setSyncInterval((long) (1000f * parseFloat(text)));
+							return true;
+						} catch (NumberFormatException e) {
+							return false;
+						}
+					}, wpAgeFloatFmt.format(mod.config.getSyncInterval() / 1000f))
+							.setFixedSize(new Vec2(60, 20)))
+					.add(new Label("seconds", ALIGN_LEFT))
+			));
 			scroll.add(new Spacer(spacer));
 		}
 
@@ -230,10 +251,10 @@ public class SettingsGui extends GuiRoot {
 		final FlexListLayout row = new FlexListLayout(ROW);
 		row.add(new Label("Player decorations:", ALIGN_LEFT));
 		row.add(new Spacer(spacer));
-		row.add(configToggle("Glow",
-				mod.config::setPlayerGlow,
-				mod.config::isPlayerGlow));
-		row.add(new Spacer(spacer));
+//		row.add(configToggle("Glow",
+//				mod.config::setPlayerGlow,
+//				mod.config::isPlayerGlow));
+//		row.add(new Spacer(spacer));
 		row.add(configToggle("Middle hoop",
 				mod.config::setPlayerMiddleHoop,
 				mod.config::isPlayerMiddleHoop));

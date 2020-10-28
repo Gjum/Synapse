@@ -9,12 +9,14 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.proxy.Socks5ProxyHandler;
 import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +26,8 @@ public class Client {
 	final Logger logger = LogManager.getLogger(this);
 	@Nonnull
 	public String address;
+	@Nonnull
+	public String proxy_address;
 	private int retrySec = 5;
 	private boolean autoReconnect = true;
 	private boolean isEncrypted = false;
@@ -33,8 +37,9 @@ public class Client {
 	private EventLoopGroup workerGroup;
 	private final ArrayList<Packet> queue = new ArrayList<>();
 
-	public Client(@Nonnull String address) {
+	public Client(@Nonnull String address, @Nonnull String proxy_address) {
 		this.address = address;
+		this.proxy_address = proxy_address;
 	}
 
 	public Client connect() {
@@ -72,10 +77,21 @@ public class Client {
 				bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 					@Override
 					public void initChannel(SocketChannel ch) {
-						ch.pipeline().addLast(
+						ChannelPipeline p = ch.pipeline();
+						p.addLast(
 								new ServerPacketDecoder(),
 								new ClientPacketEncoder(),
 								new ClientHandler(Client.this));
+						if (proxy_address != null && proxy_address.contains(":")) {
+							String[] proxy_split = proxy_address.split(":");
+							if (proxy_split.length != 2) {
+								throw new IllegalArgumentException("Proxy expected host:port but got " + proxy_address);
+							}
+							final String proxy_host = proxy_split[0];
+							final int proxy_port = Integer.parseInt(proxy_split[1]);
+							p.addFirst(new Socks5ProxyHandler(new InetSocketAddress(proxy_host, proxy_port)));
+							logger.info("[" + MOD_NAME + "] Using Socks5 proxy: " + proxy_address);
+						}
 					}
 				});
 
@@ -108,7 +124,10 @@ public class Client {
 		return this;
 	}
 
-	void handleDisconnect(@Nonnull Throwable cause) {
+	void handleDisconnect(@Nullable Throwable cause) {
+		if (cause == null) {
+			return; // Thanks gjum, cause is actually nullable due to future.cause()...
+		}
 		isEncrypted = false;
 		LiteModSynapse.instance.handleCommsDisconnected(cause);
 		if (!autoReconnect) {

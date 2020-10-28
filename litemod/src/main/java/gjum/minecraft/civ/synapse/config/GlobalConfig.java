@@ -53,13 +53,13 @@ public class GlobalConfig extends JsonConfig {
 	private boolean playRadarSound = true;
 
 	@Expose
-	private boolean playerMiddleHoop = true;
+	private boolean playerMiddleHoop = false;
 
 	@Expose
 	private boolean playerOuterHoops = false;
 
 	@Expose
-	private boolean playerBox = false;
+	private boolean playerBox = true;
 
 	@Expose
 	private boolean playerGlow = false;
@@ -68,7 +68,7 @@ public class GlobalConfig extends JsonConfig {
 	private float playerLineWidth = 2;
 
 	@Expose
-	private long syncInterval = 1000;
+	private long syncInterval = 6500;
 
 	public enum VisibilityFormat {
 		FORMATTED("Formatted"),
@@ -91,6 +91,7 @@ public class GlobalConfig extends JsonConfig {
 		FOCUSED("Focused only"),
 		HOSTILE("Hostile only"),
 		HOSTILE_FRIENDLY("Hostile+Friendly"),
+		NOT_FRIENDLY ("Not Friendly"),
 		EVERYONE("All players");
 
 		private final String buttonText;
@@ -174,25 +175,20 @@ public class GlobalConfig extends JsonConfig {
 	@Expose
 	private Visibility visibilityFarUnsetStanding = Visibility.DULL;
 
-	private boolean initializing = false;
-
 	public GlobalConfig() {
-		initialize();
+		//initialize();
 	}
 
-	private void initialize() {
-		if (initializing) return;
-		initializing = true;
-
-		// even though getStandingColor() is marked at Nonnull, they can be null here at initialization
+	protected void fillDefaults() {
+		//
 		if (getStandingColor(Standing.FOCUS) == null)
 			setStandingColor(Standing.FOCUS, TextFormatting.YELLOW);
 		if (getStandingColor(Standing.FRIENDLY) == null)
-			setStandingColor(Standing.FRIENDLY, TextFormatting.AQUA);
+			setStandingColor(Standing.FRIENDLY, TextFormatting.GREEN);
 		if (getStandingColor(Standing.HOSTILE) == null)
 			setStandingColor(Standing.HOSTILE, TextFormatting.RED);
 		if (getStandingColor(Standing.NEUTRAL) == null)
-			setStandingColor(Standing.NEUTRAL, TextFormatting.DARK_GREEN);
+			setStandingColor(Standing.NEUTRAL, TextFormatting.DARK_PURPLE);
 		if (getStandingColor(Standing.UNSET) == null)
 			setStandingColor(Standing.UNSET, TextFormatting.WHITE);
 
@@ -206,8 +202,6 @@ public class GlobalConfig extends JsonConfig {
 			setStandingSound(Standing.UNSET, getStandingSound(Standing.NEUTRAL));
 		if (getStandingSound(Standing.FOCUS) == null)
 			setStandingSound(Standing.FOCUS, getStandingSound(Standing.HOSTILE));
-
-		initializing = false;
 	}
 
 	@Override
@@ -220,6 +214,7 @@ public class GlobalConfig extends JsonConfig {
 		final GlobalConfig newConf = (GlobalConfig) data;
 		newConf.saveLater(saveLocation);
 		LiteModSynapse.instance.config = newConf;
+		newConf.fillDefaults();
 	}
 
 	@Nonnull
@@ -250,6 +245,8 @@ public class GlobalConfig extends JsonConfig {
 				return standing == Standing.HOSTILE || standing == Standing.FOCUS;
 			case HOSTILE_FRIENDLY:
 				return standing == Standing.FRIENDLY || standing == Standing.HOSTILE || standing == Standing.FOCUS;
+			case NOT_FRIENDLY:
+				return standing != Standing.FRIENDLY;
 			default:
 			case EVERYONE:
 				return true;
@@ -498,9 +495,7 @@ public class GlobalConfig extends JsonConfig {
 		saveLater(null);
 	}
 
-	@Nonnull
 	public TextFormatting getStandingColor(@Nullable Standing standing) {
-		initialize();
 		if (standing == null) standing = Standing.UNSET;
 		return standingColors.get(standing);
 	}
@@ -515,7 +510,6 @@ public class GlobalConfig extends JsonConfig {
 
 	@Nullable
 	public String getStandingSound(Standing standing) {
-		initialize();
 		if (standing == null) standing = Standing.UNSET;
 		return standingSounds.get(standing);
 	}
@@ -563,7 +557,7 @@ public class GlobalConfig extends JsonConfig {
 	}
 
 	public boolean isPlayerGlow() {
-		return playerGlow;
+		return false;
 	}
 
 	public void setPlayerGlow(boolean playerGlow) {
