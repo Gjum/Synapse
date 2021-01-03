@@ -915,6 +915,7 @@ public class LiteModSynapse implements Tickable, Configurable, PostRenderListene
 	@Nullable
 	public ITextComponent handleChat(ITextComponent original) {
 		try {
+			if (!isModActive()) return original;
 			ObservationImpl observation = ChatHandler.observationFromChat(original);
 			if (observation != null) {
 				handleChatObservation(observation, original);
